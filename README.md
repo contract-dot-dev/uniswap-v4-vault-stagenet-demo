@@ -27,12 +27,6 @@ The hook itself never holds funds — it only pokes the vault, which then settle
 
 USD-denominated TVL and share price are derived from Chainlink price feeds and made available in view functions.
 
-### V4-specific notes
-
-- **Pool initialization.** The vault constructor calls `PoolManager.initialize` to create its pool. If no price is, it copies the live price of the canonical hookless v4 USDC/WETH 0.05% pool so the vault opens its position around the real market tick.
-- **Settlement model.** All vault liquidity ops (`mint`, `withdraw`, `compound`, `rebalance`) go through a single `IUnlockCallback` entry point. Inside the callback the vault settles its `BalanceDelta` against the PoolManager via `take` / `sync` + `transfer` + `settle`.
-- **Swaps go through UniversalRouter.** v4's `PoolManager.swap` is callback-based and not user-facing, so the `Swap` script and the test suite both route through the canonical Uniswap **UniversalRouter** (`0x66a9893cC07D91D95644AEDD05D03f95e1dBA8Af`) via **Permit2** (`0x000000000022D473030F116dDEE9F6B43aC78BA3`). A swap is encoded as a single `V4_SWAP` command containing `SWAP_EXACT_IN_SINGLE` → `SETTLE_ALL` → `TAKE_ALL` actions, which keeps the demo aligned with how a real wallet or aggregator would interact with the pool.
-
 ## Why deploy it on a Stagenet?
 
 Uniswap v4 LP vaults depend on real DeFi conditions: pool price, liquidity, ticks, token balances, etc. They also depend on the canonical v4 PoolManager and supporting infrastructure being deployed at the same addresses as mainnet.
