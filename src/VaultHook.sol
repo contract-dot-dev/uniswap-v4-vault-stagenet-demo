@@ -55,9 +55,11 @@ contract VaultHook is IHooks {
         _;
     }
 
-    constructor(IPoolManager _poolManager, address _owner) {
-        poolManager = _poolManager;
-        owner = _owner;
+    constructor() {
+        poolManager = IPoolManager(
+            0x000000000004444c5dc75cB358380D2e3dE08A90
+        );
+        owner = msg.sender;
 
         // Confirm the deployed address actually carries the AFTER_SWAP flag
         // (mined off-chain via CREATE2). Reverts if the salt was wrong.

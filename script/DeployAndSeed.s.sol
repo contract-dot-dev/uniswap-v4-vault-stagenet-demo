@@ -5,7 +5,6 @@ import "forge-std/Script.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 import {IHooks} from "v4-core/interfaces/IHooks.sol";
-import {IPoolManager} from "v4-core/interfaces/IPoolManager.sol";
 import {Hooks} from "v4-core/libraries/Hooks.sol";
 
 import {UniswapV4Vault} from "../src/UniswapV4Vault.sol";
@@ -26,9 +25,6 @@ contract DeployAndSeed is Script {
     address constant CREATE2_DEPLOYER =
         0x4e59b44847b379578588920cA78FbF26c0B4956C;
 
-    IPoolManager constant POOL_MANAGER =
-        IPoolManager(0x000000000004444c5dc75cB358380D2e3dE08A90);
-
     function run() external {
         uint256 deployerKey = vm.envUint("PRIVATE_KEY");
         uint256 shares = vm.envOr("SHARES", uint256(500_000e18));
@@ -38,7 +34,7 @@ contract DeployAndSeed is Script {
             CREATE2_DEPLOYER,
             uint160(Hooks.AFTER_SWAP_FLAG),
             type(VaultHook).creationCode,
-            abi.encode(POOL_MANAGER, sender),
+            abi.encode(),
             200_000
         );
 
@@ -46,7 +42,7 @@ contract DeployAndSeed is Script {
 
         vm.startBroadcast(deployerKey);
 
-        VaultHook hook = new VaultHook{salt: salt}(POOL_MANAGER, sender);
+        VaultHook hook = new VaultHook{salt: salt}();
         require(address(hook) == expectedHook, "Hook address mismatch");
 
         UniswapV4Vault vault = new UniswapV4Vault(IHooks(address(hook)), 0);

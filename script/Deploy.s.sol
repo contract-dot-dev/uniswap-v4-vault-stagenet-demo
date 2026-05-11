@@ -4,7 +4,6 @@ pragma solidity ^0.8.26;
 import "forge-std/Script.sol";
 
 import {IHooks} from "v4-core/interfaces/IHooks.sol";
-import {IPoolManager} from "v4-core/interfaces/IPoolManager.sol";
 import {Hooks} from "v4-core/libraries/Hooks.sol";
 
 import {UniswapV4Vault} from "../src/UniswapV4Vault.sol";
@@ -22,19 +21,15 @@ contract Deploy is Script {
     address constant CREATE2_DEPLOYER =
         0x4e59b44847b379578588920cA78FbF26c0B4956C;
 
-    IPoolManager constant POOL_MANAGER =
-        IPoolManager(0x000000000004444c5dc75cB358380D2e3dE08A90);
-
     function run() external {
         uint256 deployerKey = vm.envUint("PRIVATE_KEY");
-        address deployer = vm.addr(deployerKey);
 
         // Mine a salt that produces a hook address with the AFTER_SWAP bit set.
         (address expectedHook, bytes32 salt) = HookMiner.find(
             CREATE2_DEPLOYER,
             uint160(Hooks.AFTER_SWAP_FLAG),
             type(VaultHook).creationCode,
-            abi.encode(POOL_MANAGER, deployer),
+            abi.encode(),
             200_000
         );
 
@@ -42,7 +37,7 @@ contract Deploy is Script {
 
         vm.startBroadcast(deployerKey);
 
-        VaultHook hook = new VaultHook{salt: salt}(POOL_MANAGER, deployer);
+        VaultHook hook = new VaultHook{salt: salt}();
         require(address(hook) == expectedHook, "Hook address mismatch");
 
         // sqrtPriceX96 = 0 makes the vault initialize at the live price of the
